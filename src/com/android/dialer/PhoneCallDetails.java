@@ -90,11 +90,6 @@ public class PhoneCallDetails implements CallDetailHeader.Data {
     public final static int DEFAULT_PHONE_ID = 0;
 
     /**
-     * Duration type for this call.
-     */
-    public final int durationType;
-
-    /**
      * Create the details for a call, with empty defaults specified for extra fields that are
      * not necessary for testing.
      */
@@ -116,19 +111,6 @@ public class PhoneCallDetails implements CallDetailHeader.Data {
                 features, dataUsage, transcription);
     }
 
-    public PhoneCallDetails(CharSequence number, int numberPresentation,
-            CharSequence formattedNumber, String countryIso, String geocode,
-            int[] callTypes, long date, long duration, CharSequence name,
-            int numberType, CharSequence numberLabel, Uri contactUri,
-            Uri photoUri, int sourceType,
-            PhoneAccountHandle accountHandle, int features,
-            Long dataUsage, String transcription) {
-       this(number, numberPresentation, formattedNumber, countryIso, geocode, callTypes,
-               date, duration, name, numberType, numberLabel, contactUri, photoUri, sourceType,
-               accountHandle, features, dataUsage, transcription,
-               Calls.DURATION_TYPE_ACTIVE);
-    }
-
     /** Create the details for a call with a number associated with a contact. */
     public PhoneCallDetails(CharSequence number, int numberPresentation,
             CharSequence formattedNumber, String countryIso, String geocode,
@@ -136,7 +118,7 @@ public class PhoneCallDetails implements CallDetailHeader.Data {
             int numberType, CharSequence numberLabel, Uri contactUri,
             Uri photoUri, int sourceType,
             PhoneAccountHandle accountHandle, int features,
-            Long dataUsage, String transcription, int durationType) {
+            Long dataUsage, String transcription) {
         this.number = number;
         this.numberPresentation = numberPresentation;
         this.formattedNumber = formattedNumber;
@@ -155,7 +137,6 @@ public class PhoneCallDetails implements CallDetailHeader.Data {
         this.features = features;
         this.dataUsage = dataUsage;
         this.transcription = transcription;
-        this.durationType = durationType;
     }
 
     @Override

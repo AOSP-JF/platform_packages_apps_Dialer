@@ -219,7 +219,6 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
         CallLog.Calls.FEATURES,
         CallLog.Calls.DATA_USAGE,
         CallLog.Calls.TRANSCRIPTION,
-        CallLog.Calls.DURATION_TYPE
     };
 
     static final int DATE_COLUMN_INDEX = 0;
@@ -234,7 +233,6 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     static final int FEATURES = 9;
     static final int DATA_USAGE = 10;
     static final int TRANSCRIPTION_COLUMN_INDEX = 11;
-    static final int DURATION_TYPE_COLUMN_INDEX = 12;
 
     @Override
     protected void onCreate(Bundle icicle) {
@@ -517,7 +515,6 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
             String countryIso = callCursor.getString(COUNTRY_ISO_COLUMN_INDEX);
             final String geocode = callCursor.getString(GEOCODED_LOCATION_COLUMN_INDEX);
             final String transcription = callCursor.getString(TRANSCRIPTION_COLUMN_INDEX);
-            final int durationType = callCursor.getInt(DURATION_TYPE_COLUMN_INDEX);
 
             final PhoneAccountHandle accountHandle = PhoneAccountUtils.getAccount(
                     callCursor.getString(ACCOUNT_COMPONENT_NAME),
@@ -569,7 +566,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                     formattedNumber, countryIso, geocode,
                     new int[]{ callType }, date, duration,
                     nameText, numberType, numberLabel, lookupUri, photoUri, sourceType,
-                    accountHandle, features, dataUsage, transcription, durationType);
+                    accountHandle, features, dataUsage, transcription);
         } finally {
             if (callCursor != null) {
                 callCursor.close();
@@ -635,17 +632,17 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
         menu.findItem(R.id.menu_edit_number_before_call).setVisible(mHasEditNumberBeforeCallOption);
         menu.findItem(R.id.menu_trash).setVisible(mHasTrashOption);
 
-        menu.findItem(R.id.menu_video_call).setVisible(CallUtil.isCSVTEnabled());
+        //menu.findItem(R.id.menu_video_call).setVisible(CallUtil.isCSVTEnabled());
 
         return super.onPrepareOptionsMenu(menu);
     }
 
     public void onMenuVideoCall(MenuItem menuItem) {
-        if (CallUtil.isCSVTEnabled()) {
-            startActivity(CallUtil.getCSVTCallIntent(mNumber));
-        } else if (false) {
+        //if (CallUtil.isCSVTEnabled()) {
+        //    startActivity(CallUtil.getCSVTCallIntent(mNumber));
+        //} else if (false) {
             //add support for ims video call;
-        }
+        //}
     }
 
     public void onMenuRemoveFromCallLog(MenuItem menuItem) {

@@ -192,7 +192,7 @@ public class CallDetailHeader {
                 mResources.getString(R.string.description_contact_details, data.getName()));
 
         mContactPhotoManager.loadDirectoryPhoto(mQuickContactBadge, data.getPhotoUri(),
-                contactAccount, false /* darkTheme */, true /* isCircular */, request);
+                false /* darkTheme */, true /* isCircular */, request);
     }
 
     static final class ViewEntry {

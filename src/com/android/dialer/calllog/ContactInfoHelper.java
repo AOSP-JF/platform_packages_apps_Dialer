@@ -34,7 +34,7 @@ import android.widget.Toast;
 import com.android.contacts.common.util.Constants;
 import com.android.contacts.common.util.PhoneNumberHelper;
 import com.android.contacts.common.util.UriUtils;
-import com.android.dialer.lookup.LookupCache;
+//import com.android.dialer.lookup.LookupCache;
 import com.android.dialer.R;
 import com.android.dialer.service.CachedNumberLookupService;
 import com.android.dialer.service.CachedNumberLookupService.CachedContactInfo;
@@ -251,8 +251,8 @@ public class ContactInfoHelper {
         ContactInfo info = lookupContactFromUri(uri);
         if (info != null && info != ContactInfo.EMPTY) {
             info.formattedNumber = formatPhoneNumber(number, null, countryIso);
-        } else if (LookupCache.hasCachedContact(mContext, number)) {
-            info = LookupCache.getCachedContact(mContext, number);
+        //} else if (LookupCache.hasCachedContact(mContext, number)) {
+        //    info = LookupCache.getCachedContact(mContext, number);
         } else if (mCachedNumberLookupService != null) {
             CachedContactInfo cacheInfo =
                     mCachedNumberLookupService.lookupCachedContactFromNumber(mContext, number);
@@ -330,15 +330,6 @@ public class ContactInfoHelper {
         return mCachedNumberLookupService != null
                 && mCachedNumberLookupService.canReportAsInvalid(sourceType, objectId);
      }
-
-    /**
-     * Checks whether calls can be blacklisted; that is, whether the
-     * phone blacklist is enabled
-     */
-    public boolean canBlacklistCalls() {
-        return Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PHONE_BLACKLIST_ENABLED, 1) != 0;
-    }
 
     /**
      * Requests the given number to be added to the phone blacklist

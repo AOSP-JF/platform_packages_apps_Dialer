@@ -65,14 +65,14 @@ public abstract class IntentProvider {
         };
     }
 
-    public static IntentProvider getReturnCSVTCallIntentProvider(final String number) {
-        return new IntentProvider() {
-            @Override
-            public Intent getIntent(Context context) {
-                return CallUtil.getCSVTCallIntent(number);
-            }
-        };
-    }
+    //public static IntentProvider getReturnCSVTCallIntentProvider(final String number) {
+    //    return new IntentProvider() {
+    //        @Override
+    //        public Intent getIntent(Context context) {
+    //            return CallUtil.getCSVTCallIntent(number);
+    //        }
+    //    };
+    //}
 
     public static IntentProvider getReturnVoicemailCallIntentProvider() {
         return new IntentProvider() {

@@ -42,7 +42,6 @@ public class SpinnerContent {
     private static final int INDEX_CALL_TYPE_INCOMING = 1;
     private static final int INDEX_CALL_TYPE_OUTGOING = 2;
     private static final int INDEX_CALL_TYPE_MISSED = 3;
-    private static final int INDEX_CALL_TYPE_BLACKLIST = 4;
     private static final int INDEX_CALL_TYPE_VOICEMAIL = 5;
 
     public static void setSpinnerContentValue(Spinner spinner, int value) {
@@ -77,13 +76,13 @@ public class SpinnerContent {
         ArrayList<SpinnerContent> values = new ArrayList<SpinnerContent>(count + 1);
         values.add(new SpinnerContent(CallLogQueryHandler.CALL_SIM_ALL,
                 context.getString(R.string.call_log_show_all_slots)));
-        for (int i = 0; i < count; i++) {
-            String subDisplayName = PhoneAccountUtils.getAccountLabel(context,
-                    MoreContactUtils.getAccount(i));
-            if (!TextUtils.isEmpty(subDisplayName)) {
-                values.add(new SpinnerContent(i, subDisplayName));
-            }
-        }
+        //for (int i = 0; i < count; i++) {
+        //    String subDisplayName = PhoneAccountUtils.getAccountLabel(context,
+        //            MoreContactUtils.getAccount(i));
+        //    if (!TextUtils.isEmpty(subDisplayName)) {
+        //        values.add(new SpinnerContent(i, subDisplayName));
+        //    }
+        //}
         return values;
     }
 
@@ -115,10 +114,6 @@ public class SpinnerContent {
                 case INDEX_CALL_TYPE_MISSED:
                     value = CallLog.Calls.MISSED_TYPE;
                     label = context.getString(R.string.call_log_missed_header);
-                    break;
-                case INDEX_CALL_TYPE_BLACKLIST:
-                    value = CallLog.Calls.BLACKLIST_TYPE;
-                    label = context.getString(R.string.call_log_blacklist_header);
                     break;
                 case INDEX_CALL_TYPE_VOICEMAIL:
                     value = CallLog.Calls.VOICEMAIL_TYPE;

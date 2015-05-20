@@ -118,22 +118,6 @@ public class SmartDialPrefix {
         }
         /** Queries the NANP country list to find out whether user is in a NANP region.*/
         sUserInNanpRegion = isCountryNanp(sUserSimCountryCode);
-
-        /** Sets a layout for SmartDial based on locale.  Lookup by language first and fallback to country */
-        Locale locale = SettingsUtil.getT9SearchInputLocale(context);
-        mMap = languageToSmartDialMap.get(locale.getLanguage());
-        if (mMap == null)
-            mMap = countryToSmartDialMap.get(locale.getCountry());
-        if (mMap == null)
-            mMap = new LatinSmartDialMap();
-
-        sNanpInitialized = true;
-    }
-
-    // for testing only
-    @VisibleForTesting
-    static void setSmartDialMap(SmartDialMap map) {
-        mMap = map;
     }
 
     /**
