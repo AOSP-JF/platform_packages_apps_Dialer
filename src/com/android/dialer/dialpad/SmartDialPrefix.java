@@ -73,30 +73,9 @@ public class SmartDialPrefix {
     private static Set<String> sCountryCodes = null;
 
     /** Dialpad mapping. */
-    private static SmartDialMap mMap = null;
+    private static SmartDialMap mMap = new LatinSmartDialMap();
 
     private static boolean sNanpInitialized = false;
-
-    private static final Map<String, SmartDialMap> languageToSmartDialMap = new HashMap<String, SmartDialMap>();
-    static {
-        languageToSmartDialMap.put("ko", new KoreanSmartDialMap());
-        languageToSmartDialMap.put("el", new GreekSmartDialMap());
-        languageToSmartDialMap.put("ru", new RussianSmartDialMap());
-        // Per Locale.java documentation:
-        // Note that Java uses several deprecated two-letter codes. The Hebrew ("he") language
-        // code is rewritten as "iw"
-        languageToSmartDialMap.put("iw", new HebrewSmartDialMap());
-        languageToSmartDialMap.put("zh", new ChineseSmartDialMap());
-    }
-
-    private static final Map<String, SmartDialMap> countryToSmartDialMap = new HashMap<String, SmartDialMap>();
-    static {
-        languageToSmartDialMap.put("KR", new KoreanSmartDialMap());
-        languageToSmartDialMap.put("GR", new GreekSmartDialMap());
-        languageToSmartDialMap.put("RU", new RussianSmartDialMap());
-        languageToSmartDialMap.put("IL", new HebrewSmartDialMap());
-        languageToSmartDialMap.put("CN", new ChineseSmartDialMap());
-    }
 
     /** Initializes the Nanp settings, and finds out whether user is in a NANP region.*/
     public static void initializeNanpSettings(Context context){
@@ -118,6 +97,7 @@ public class SmartDialPrefix {
         }
         /** Queries the NANP country list to find out whether user is in a NANP region.*/
         sUserInNanpRegion = isCountryNanp(sUserSimCountryCode);
+        sNanpInitialized = true;
     }
 
     /**

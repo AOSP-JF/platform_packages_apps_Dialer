@@ -298,10 +298,6 @@
                   android:screenOrientation="nosensor" >
         </activity>
 
-        <service android:name="com.android.services.callrecorder.CallRecorderService"
-                 android:process="com.android.incallui">
-        </service>
-
         <activity android:name="com.android.incallui.CircularRevealActivity"
                   android:theme="@style/Theme.CircularRevealAnimation"
                   android:exported="false"

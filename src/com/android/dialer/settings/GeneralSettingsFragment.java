@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
@@ -140,7 +139,7 @@ public class GeneralSettingsFragment extends PreferenceFragment
             boolean doVibrate = (Boolean) objValue;
             Settings.System.putInt(mContext.getContentResolver(),
                     Settings.System.VIBRATE_WHEN_RINGING, doVibrate ? 1 : 0);
-        }
+        } 
         return true;
     }
 
@@ -152,7 +151,7 @@ public class GeneralSettingsFragment extends PreferenceFragment
         if (preference == mPlayDtmfTone) {
             Settings.System.putInt(mContext.getContentResolver(),
                     Settings.System.DTMF_TONE_WHEN_DIALING, mPlayDtmfTone.isChecked() ? 1 : 0);
-        } else if (preference == mRespondViaSms) {
+        } else if (preference == mRespondViaSms || preference == mSpeedDialSettings) {
             // Needs to return false for the intent to launch.
             return false;
         }

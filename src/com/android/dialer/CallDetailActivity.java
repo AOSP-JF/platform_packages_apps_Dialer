@@ -67,14 +67,12 @@ import com.android.dialer.calllog.PhoneNumberUtilsWrapper;
 import com.android.dialer.util.AsyncTaskExecutor;
 import com.android.dialer.util.AsyncTaskExecutors;
 import com.android.dialer.util.DialerUtils;
-import com.android.dialer.util.CallRecordingPlayer;
 import com.android.dialer.voicemail.VoicemailPlaybackFragment;
 import com.android.dialer.voicemail.VoicemailStatusHelper;
 import com.android.dialer.voicemail.VoicemailStatusHelper.StatusMessage;
 import com.android.dialer.voicemail.VoicemailStatusHelperImpl;
 
 import com.android.internal.telephony.PhoneConstants;
-import com.android.services.callrecorder.CallRecordingDataStore;
 
 import java.util.List;
 
@@ -152,9 +150,6 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     private ProximitySensorManager mProximitySensorManager;
     private final ProximitySensorListener mProximitySensorListener = new ProximitySensorListener();
 
-    private CallRecordingDataStore mCallRecordingDataStore = new CallRecordingDataStore();
-    private CallRecordingPlayer mCallRecordingPlayer;
-
     /** Listener to changes in the proximity sensor state. */
     private class ProximitySensorListener implements ProximitySensorManager.Listener {
         /** Used to show a blank view and hide the action bar. */
@@ -219,6 +214,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
         CallLog.Calls.FEATURES,
         CallLog.Calls.DATA_USAGE,
         CallLog.Calls.TRANSCRIPTION,
+        CallLog.Calls.DURATION_TYPE
     };
 
     static final int DATE_COLUMN_INDEX = 0;
@@ -233,14 +229,13 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     static final int FEATURES = 9;
     static final int DATA_USAGE = 10;
     static final int TRANSCRIPTION_COLUMN_INDEX = 11;
+    static final int DURATION_TYPE_COLUMN_INDEX = 12;
 
     @Override
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
         setContentView(R.layout.call_detail);
-
-        mCallRecordingPlayer = new CallRecordingPlayer(this);
 
         mAsyncTaskExecutor = AsyncTaskExecutors.createThreadPoolExecutor();
         mInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -268,8 +263,6 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mCallRecordingDataStore.close();
-        mCallRecordingPlayer.stop();
     }
 
     @Override
@@ -456,7 +449,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                 ListView historyList = (ListView) findViewById(R.id.history);
                 historyList.setAdapter(
                         new CallDetailHistoryAdapter(CallDetailActivity.this, mInflater,
-                                mCallTypeHelper, details, mCallRecordingDataStore, mCallRecordingPlayer));
+                                mCallTypeHelper, details));
                 mCallDetailHeader.loadContactPhotos(firstDetails, contactType);
                 findViewById(R.id.call_detail).setVisibility(View.VISIBLE);
 
@@ -515,6 +508,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
             String countryIso = callCursor.getString(COUNTRY_ISO_COLUMN_INDEX);
             final String geocode = callCursor.getString(GEOCODED_LOCATION_COLUMN_INDEX);
             final String transcription = callCursor.getString(TRANSCRIPTION_COLUMN_INDEX);
+            final int durationType = callCursor.getInt(DURATION_TYPE_COLUMN_INDEX);
 
             final PhoneAccountHandle accountHandle = PhoneAccountUtils.getAccount(
                     callCursor.getString(ACCOUNT_COMPONENT_NAME),
@@ -566,7 +560,7 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
                     formattedNumber, countryIso, geocode,
                     new int[]{ callType }, date, duration,
                     nameText, numberType, numberLabel, lookupUri, photoUri, sourceType,
-                    accountHandle, features, dataUsage, transcription);
+                    accountHandle, features, dataUsage, transcription, durationType);
         } finally {
             if (callCursor != null) {
                 callCursor.close();
@@ -632,17 +626,17 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
         menu.findItem(R.id.menu_edit_number_before_call).setVisible(mHasEditNumberBeforeCallOption);
         menu.findItem(R.id.menu_trash).setVisible(mHasTrashOption);
 
-        //menu.findItem(R.id.menu_video_call).setVisible(CallUtil.isCSVTEnabled());
+        menu.findItem(R.id.menu_video_call).setVisible(CallUtil.isCSVTEnabled());
 
         return super.onPrepareOptionsMenu(menu);
     }
 
     public void onMenuVideoCall(MenuItem menuItem) {
-        //if (CallUtil.isCSVTEnabled()) {
-        //    startActivity(CallUtil.getCSVTCallIntent(mNumber));
-        //} else if (false) {
+        if (CallUtil.isCSVTEnabled()) {
+            startActivity(CallUtil.getCSVTCallIntent(mNumber));
+        } else if (false) {
             //add support for ims video call;
-        //}
+        }
     }
 
     public void onMenuRemoveFromCallLog(MenuItem menuItem) {
@@ -672,10 +666,6 @@ public class CallDetailActivity extends Activity implements ProximitySensorAware
 
     public void onMenuEditNumberBeforeCall(MenuItem menuItem) {
         startActivity(new Intent(Intent.ACTION_DIAL, CallUtil.getCallUri(mNumber)));
-    }
-
-    public void onMenuAddToBlacklist(MenuItem menuItem) {
-        mContactInfoHelper.addNumberToBlacklist(mNumber);
     }
 
     public void onMenuTrashVoicemail(MenuItem menuItem) {

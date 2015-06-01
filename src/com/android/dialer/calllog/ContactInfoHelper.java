@@ -34,7 +34,7 @@ import android.widget.Toast;
 import com.android.contacts.common.util.Constants;
 import com.android.contacts.common.util.PhoneNumberHelper;
 import com.android.contacts.common.util.UriUtils;
-//import com.android.dialer.lookup.LookupCache;
+import com.android.dialer.lookup.LookupCache;
 import com.android.dialer.R;
 import com.android.dialer.service.CachedNumberLookupService;
 import com.android.dialer.service.CachedNumberLookupService.CachedContactInfo;
@@ -251,8 +251,8 @@ public class ContactInfoHelper {
         ContactInfo info = lookupContactFromUri(uri);
         if (info != null && info != ContactInfo.EMPTY) {
             info.formattedNumber = formatPhoneNumber(number, null, countryIso);
-        //} else if (LookupCache.hasCachedContact(mContext, number)) {
-        //    info = LookupCache.getCachedContact(mContext, number);
+        } else if (LookupCache.hasCachedContact(mContext, number)) {
+            info = LookupCache.getCachedContact(mContext, number);
         } else if (mCachedNumberLookupService != null) {
             CachedContactInfo cacheInfo =
                     mCachedNumberLookupService.lookupCachedContactFromNumber(mContext, number);
@@ -330,24 +330,4 @@ public class ContactInfoHelper {
         return mCachedNumberLookupService != null
                 && mCachedNumberLookupService.canReportAsInvalid(sourceType, objectId);
      }
-
-    /**
-     * Requests the given number to be added to the phone blacklist
-     *
-     * @param number the number to be blacklisted
-     */
-    public void addNumberToBlacklist(String number) {
-        ContentValues cv = new ContentValues();
-        cv.put(Telephony.Blacklist.PHONE_MODE, 1);
-
-        Uri uri = Uri.withAppendedPath(Telephony.Blacklist.CONTENT_FILTER_BYNUMBER_URI, number);
-        int count = mContext.getContentResolver().update(uri, cv, null, null);
-
-        if (count != 0) {
-            // Give the user some feedback
-            String message = mContext.getString(R.string.toast_added_to_blacklist, number);
-            Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
-        }
-    }
-
 }

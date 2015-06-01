@@ -33,11 +33,6 @@ import com.android.dialer.R;
 import com.android.dialer.util.DialerUtils;
 import com.google.common.collect.Lists;
 
-import com.android.dialer.util.CallRecordingPlayer;
-import com.android.services.callrecorder.common.CallRecording;
-import com.android.services.callrecorder.CallRecorderService;
-import com.android.services.callrecorder.CallRecordingDataStore;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,19 +55,12 @@ public class CallDetailHistoryAdapter extends BaseAdapter {
      */
     private ArrayList<CharSequence> mDurationItems = Lists.newArrayList();
 
-    private CallRecordingDataStore mCallRecordingDataStore;
-    private CallRecordingPlayer mCallRecordingPlayer;
-
     public CallDetailHistoryAdapter(Context context, LayoutInflater layoutInflater,
-            CallTypeHelper callTypeHelper, PhoneCallDetails[] phoneCallDetails,
-            CallRecordingDataStore callRecordingDataStore,
-            CallRecordingPlayer callRecordingPlayer) {
+            CallTypeHelper callTypeHelper, PhoneCallDetails[] phoneCallDetails) {
         mContext = context;
         mLayoutInflater = layoutInflater;
         mCallTypeHelper = callTypeHelper;
         mPhoneCallDetails = phoneCallDetails;
-        mCallRecordingDataStore = callRecordingDataStore;
-        mCallRecordingPlayer = callRecordingPlayer;
     }
 
     @Override
@@ -155,23 +143,7 @@ public class CallDetailHistoryAdapter extends BaseAdapter {
         } else {
             durationView.setVisibility(View.VISIBLE);
             durationView.setText(
-                    formatDurationAndDataUsage(details.duration, details.dataUsage));
-        }
-
-        // do this synchronously to prevent recordings from "popping in"
-        // after detail item is displayed
-        if (CallRecorderService.isEnabled(mContext)) {
-            mCallRecordingDataStore.open(mContext); // opens unless already open
-            List<CallRecording> recordings =
-                    mCallRecordingDataStore.getRecordings(details.number.toString(), details.date);
-
-            ViewGroup playbackView =
-                    (ViewGroup) result.findViewById(R.id.recording_playback_layout);
-            playbackView.removeAllViews();
-            for (CallRecording recording : recordings) {
-                Button button = mCallRecordingPlayer.createPlaybackButton(recording);
-                playbackView.addView(button);
-            }
+                    formatDurationAndDataUsage(details.duration, details.dataUsage, details.durationType));
         }
 
         return result;
@@ -197,7 +169,8 @@ public class CallDetailHistoryAdapter extends BaseAdapter {
      * @param dataUsage Data usage in bytes, or null if not specified.
      * @return String containing call duration and data usage.
      */
-    private CharSequence formatDurationAndDataUsage(long elapsedSeconds, Long dataUsage) {
+    private CharSequence formatDurationAndDataUsage(long elapsedSeconds, Long dataUsage,
+            int durationType) {
         CharSequence duration = formatDuration(elapsedSeconds);
 
         if (dataUsage != null) {
@@ -207,7 +180,19 @@ public class CallDetailHistoryAdapter extends BaseAdapter {
 
             return DialerUtils.join(mContext.getResources(), mDurationItems);
         } else {
-            return duration;
+            boolean enabled = mContext.getResources().getBoolean(R.bool.call_durationtype_enabled);
+            if (enabled) {
+                switch (durationType) {
+                    case Calls.DURATION_TYPE_ACTIVE:
+                        return mContext.getString(R.string.call_duration_active) + duration;
+                    case Calls.DURATION_TYPE_CALLOUT:
+                        return mContext.getString(R.string.call_duration_call_out) + duration;
+                    default:
+                        return duration;
+                }
+            } else {
+                return duration;
+            }
         }
     }
 }

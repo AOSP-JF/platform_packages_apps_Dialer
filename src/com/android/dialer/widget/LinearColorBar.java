@@ -96,11 +96,10 @@ public class LinearColorBar extends LinearLayout {
         mEdgeGradientPaint.setAntiAlias(true);
     }
 
-    public void setRatios(float blue, float green, float red, float orange) {
+    public void setRatios(float blue, float green, float red) {
         mFirstRatio = blue;
         mSecondRatio = green;
         mThirdRatio = red;
-        mFourthRatio = orange;
         invalidate();
     }
 

@@ -76,13 +76,13 @@ public class SpinnerContent {
         ArrayList<SpinnerContent> values = new ArrayList<SpinnerContent>(count + 1);
         values.add(new SpinnerContent(CallLogQueryHandler.CALL_SIM_ALL,
                 context.getString(R.string.call_log_show_all_slots)));
-        //for (int i = 0; i < count; i++) {
-        //    String subDisplayName = PhoneAccountUtils.getAccountLabel(context,
-        //            MoreContactUtils.getAccount(i));
-        //    if (!TextUtils.isEmpty(subDisplayName)) {
-        //        values.add(new SpinnerContent(i, subDisplayName));
-        //    }
-        //}
+        for (int i = 0; i < count; i++) {
+            String subDisplayName = PhoneAccountUtils.getAccountLabel(context,
+                    MoreContactUtils.getAccount(i));
+            if (!TextUtils.isEmpty(subDisplayName)) {
+                values.add(new SpinnerContent(i, subDisplayName));
+            }
+        }
         return values;
     }
 

@@ -487,10 +487,17 @@ public class CallLogAdapter extends GroupingListAdapter
             nameForDefaultImage = name;
         }
 
-        if (photoId == 0 && photoUri != null) {
-            setPhoto(views, photoUri, lookupUri, nameForDefaultImage, lookupKey, contactType);
+        if (!TextUtils.isEmpty(accountName) && !TextUtils.isEmpty(accountType)) {
+            contactAccount = new Account(accountName, accountType);
         } else {
-            setPhoto(views, photoId, lookupUri, nameForDefaultImage, lookupKey, contactType);
+            contactAccount = null;
+        }
+        if (photoId == 0 && photoUri != null) {
+            setPhoto(views, photoUri, lookupUri, nameForDefaultImage, lookupKey, contactType,
+                    contactAccount);
+        } else {
+            setPhoto(views, photoId, lookupUri, nameForDefaultImage, lookupKey, contactType,
+                    contactAccount);
         }
 
         mAdapterHelper.registerOnPreDrawListener(callLogItemView);
@@ -711,15 +718,15 @@ public class CallLogAdapter extends GroupingListAdapter
         }
 
         // if csvt is enabled, shoue video call options.
-        //if (CallUtil.isCSVTEnabled() && canPlaceCallToNumber) {
-        //    views.videoCallButtonView.setTag(
-        //            IntentProvider.getReturnCSVTCallIntentProvider(views.number));
-        //    views.videoCallButtonView.setVisibility(View.VISIBLE);
-        //    views.videoCallButtonView.setOnClickListener(mActionListener);
-        //} else {
-        //    views.videoCallButtonView.setTag(null);
-        //    views.videoCallButtonView.setVisibility(View.GONE);
-        //}
+        if (CallUtil.isCSVTEnabled() && canPlaceCallToNumber) {
+            views.videoCallButtonView.setTag(
+                    IntentProvider.getReturnCSVTCallIntentProvider(views.number));
+            views.videoCallButtonView.setVisibility(View.VISIBLE);
+            views.videoCallButtonView.setOnClickListener(mActionListener);
+        } else {
+            views.videoCallButtonView.setTag(null);
+            views.videoCallButtonView.setVisibility(View.GONE);
+        }
 
         // For voicemail calls, show the "VOICEMAIL" action button; hide otherwise.
         if (views.callType == Calls.VOICEMAIL_TYPE) {
@@ -931,17 +938,17 @@ public class CallLogAdapter extends GroupingListAdapter
     }
 
     private void setPhoto(CallLogListItemViews views, long photoId, Uri contactUri,
-            String displayName, String identifier, int contactType) {
+            String displayName, String identifier, int contactType, Account account) {
         views.quickContactView.assignContactUri(contactUri);
         views.quickContactView.setOverlay(null);
         DefaultImageRequest request = new DefaultImageRequest(displayName, identifier,
                 contactType, true /* isCircular */);
-        mContactPhotoManager.loadThumbnail(views.quickContactView, photoId, false /* darkTheme */,
-                true /* isCircular */, request);
+        mContactPhotoManager.loadThumbnail(views.quickContactView, photoId, account,
+                false /* darkTheme */, true /* isCircular */, request);
     }
 
     private void setPhoto(CallLogListItemViews views, Uri photoUri, Uri contactUri,
-            String displayName, String identifier, int contactType) {
+            String displayName, String identifier, int contactType, Account account) {
         views.quickContactView.assignContactUri(contactUri);
         views.quickContactView.setOverlay(null);
         DefaultImageRequest request = new DefaultImageRequest(displayName, identifier,

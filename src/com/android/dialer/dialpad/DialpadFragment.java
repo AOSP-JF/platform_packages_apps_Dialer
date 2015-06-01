@@ -78,6 +78,7 @@ import com.android.contacts.common.CallUtil;
 import com.android.contacts.common.ContactsUtils;
 import com.android.contacts.common.GeoUtil;
 import com.android.contacts.common.MoreContactUtils;
+import com.android.contacts.common.util.PickupGestureDetector;
 import com.android.contacts.common.util.PhoneNumberFormatter;
 import com.android.contacts.common.util.StopWatch;
 import com.android.contacts.common.widget.FloatingActionButtonController;
@@ -112,6 +113,7 @@ public class DialpadFragment extends Fragment
         View.OnLongClickListener, View.OnKeyListener,
         AdapterView.OnItemClickListener, TextWatcher,
         PopupMenu.OnMenuItemClickListener,
+        PickupGestureDetector.PickupListener,
         DialpadKeyButton.OnPressedListener {
     private static final String TAG = DialpadFragment.class.getSimpleName();
 
@@ -186,6 +188,8 @@ public class DialpadFragment extends Fragment
     private ToneGenerator mToneGenerator;
     private final Object mToneGeneratorLock = new Object();
     private View mSpacer;
+
+    private PickupGestureDetector mPickupDetector;
 
     private FloatingActionButtonController mFloatingActionButtonController;
 
@@ -363,6 +367,8 @@ public class DialpadFragment extends Fragment
             mCallStateReceiver = new CallStateReceiver();
             ((Context) getActivity()).registerReceiver(mCallStateReceiver, callStateIntentFilter);
         }
+
+        mPickupDetector = new PickupGestureDetector(getActivity(), this);
     }
 
     @Override
@@ -691,6 +697,10 @@ public class DialpadFragment extends Fragment
 
         stopWatch.stopAndLog(TAG, 50);
 
+        if (!isPhoneInUse() && isSmartCallEnabled()) {
+            mPickupDetector.enable();
+        }
+
         mSmsPackageComponentName = DialerUtils.getSmsComponent(activity);
 
         // Populate the overflow menu in onResume instead of onCreate, so that if the SMS activity
@@ -716,6 +726,8 @@ public class DialpadFragment extends Fragment
         mLastNumberDialed = EMPTY_NUMBER;  // Since we are going to query again, free stale number.
 
         SpecialCharSequenceMgr.cleanup();
+
+        mPickupDetector.disable();
     }
 
     @Override
@@ -732,6 +744,21 @@ public class DialpadFragment extends Fragment
         if (mClearDigitsOnStop) {
             mClearDigitsOnStop = false;
             clearDialpad();
+        }
+    }
+
+    @Override
+    public void onPickup() {
+        if (!isDigitsEmpty()) {
+            mPickupDetector.disable();
+
+            final String number = mDigits.getText().toString();
+            final DialtactsActivity activity = getActivity() instanceof DialtactsActivity
+                    ? (DialtactsActivity) getActivity() : null;
+            final Intent intent = CallUtil.getCallIntent(number,
+                    activity != null ? activity.getCallOrigin() : null);
+            startActivity(intent);
+            hideAndClearDialpad(false);
         }
     }
 
@@ -902,10 +929,36 @@ public class DialpadFragment extends Fragment
                 final Menu menu = getMenu();
                 final MenuItem sendMessage = menu.findItem(R.id.menu_send_message);
                 sendMessage.setVisible(mSmsPackageComponentName != null);
+
+                final MenuItem ipCallBySlot1 = menu.findItem(R.id.menu_ip_call_by_slot1);
+                final MenuItem ipCallBySlot2 = menu.findItem(R.id.menu_ip_call_by_slot2);
+                if (MoreContactUtils.isMultiSimEnable(mContext, PhoneConstants.SUB1)) {
+                    String sub1Name = MoreContactUtils.getMultiSimAliasesName(
+                            mContext, PhoneConstants.SUB1);
+                    ipCallBySlot1.setTitle(mContext.getString(
+                            com.android.contacts.common.R.string.ip_call_by_slot, sub1Name));
+                    ipCallBySlot1.setVisible(true);
+                } else {
+                    ipCallBySlot1.setVisible(false);
+                }
+                if (MoreContactUtils.isMultiSimEnable(mContext, PhoneConstants.SUB2)) {
+                    String sub2Name = MoreContactUtils.getMultiSimAliasesName(
+                            mContext, PhoneConstants.SUB2);
+                    ipCallBySlot2.setTitle(mContext.getString(
+                            com.android.contacts.common.R.string.ip_call_by_slot, sub2Name));
+                    ipCallBySlot2.setVisible(true);
+                } else {
+                    ipCallBySlot2.setVisible(false);
+                }
+
+                final MenuItem VideoCallOption = menu.findItem(R.id.menu_video_call);
+                VideoCallOption.setVisible(CallUtil.isCSVTEnabled());
+
                 boolean enable = !isDigitsEmpty();
                 for (int i = 0; i < menu.size(); i++) {
                     menu.getItem(i).setEnabled(enable);
                 }
+
                 super.show();
             }
         };
@@ -1075,35 +1128,35 @@ public class DialpadFragment extends Fragment
         mContext = activity;
     }
 
-    //private void ipCallBySlot(int slotId) {
-    //    String prefix = MoreContactUtils.getIPCallPrefix(mContext, slotId);
-    //    if (!TextUtils.isEmpty(prefix)) {
-    //        int[] subId = SubscriptionManager.getSubId(slotId);
-    //        if (subId != null && subId.length >= 1) {
-    //            ComponentName serviceName =
-    //                    new ComponentName("com.android.phone",
-    //                    "com.android.services.telephony.TelephonyConnectionService");
-    //            PhoneAccountHandle account = new PhoneAccountHandle(serviceName,
-    //                    String.valueOf(subId[0]));
-    //            Intent callIntent = new Intent(CallUtil.getCallIntent(
-    //                    prefix + getValidDialNumber(), account));
-    //            startActivity(callIntent);
-    //        } else {
-    //            Intent callIntent = new Intent(CallUtil.getCallIntent(
-    //                    prefix + getValidDialNumber()));
-    //            startActivity(callIntent);
-    //        }
-    //    } else {
-    //        MoreContactUtils.showNoIPNumberDialog(mContext, slotId);
-    //    }
-    //}
+    private void ipCallBySlot(int slotId) {
+        String prefix = MoreContactUtils.getIPCallPrefix(mContext, slotId);
+        if (!TextUtils.isEmpty(prefix)) {
+            int[] subId = SubscriptionManager.getSubId(slotId);
+            if (subId != null && subId.length >= 1) {
+                ComponentName serviceName =
+                        new ComponentName("com.android.phone",
+                        "com.android.services.telephony.TelephonyConnectionService");
+                PhoneAccountHandle account = new PhoneAccountHandle(serviceName,
+                        String.valueOf(subId[0]));
+                Intent callIntent = new Intent(CallUtil.getCallIntent(
+                        prefix + getValidDialNumber(), account));
+                startActivity(callIntent);
+            } else {
+                Intent callIntent = new Intent(CallUtil.getCallIntent(
+                        prefix + getValidDialNumber()));
+                startActivity(callIntent);
+            }
+        } else {
+            MoreContactUtils.showNoIPNumberDialog(mContext, slotId);
+        }
+    }
 
-    //private String getValidDialNumber() {
-    //    if (mDigits != null)
-    //        return mDigits.getText().toString();
-    //    else
-    //        return "";
-    //}
+    private String getValidDialNumber() {
+        if (mDigits != null)
+            return mDigits.getText().toString();
+        else
+            return "";
+    }
 
     /**
      * Remove the digit just before the current position. This can be used if we want to replace
@@ -1580,19 +1633,19 @@ public class DialpadFragment extends Fragment
                 DialerUtils.startActivityWithErrorToast(getActivity(), smsIntent);
                 return true;
             }
-            //case R.id.menu_ip_call_by_slot1:
-            //    ipCallBySlot(PhoneConstants.SUB1);
-            //    return true;
-            //case R.id.menu_ip_call_by_slot2:
-            //    ipCallBySlot(PhoneConstants.SUB2);
-            //    return true;
-            //case R.id.menu_video_call:
-            //    final String number = mDigits.getText().toString();
-                //if (CallUtil.isCSVTEnabled()) {
-                //    getActivity().startActivity(CallUtil.getCSVTCallIntent(number));
-                //} else if (false) {
+            case R.id.menu_ip_call_by_slot1:
+                ipCallBySlot(PhoneConstants.SUB1);
+                return true;
+            case R.id.menu_ip_call_by_slot2:
+                ipCallBySlot(PhoneConstants.SUB2);
+                return true;
+            case R.id.menu_video_call:
+                final String number = mDigits.getText().toString();
+                if (CallUtil.isCSVTEnabled()) {
+                    getActivity().startActivity(CallUtil.getCSVTCallIntent(number));
+                } else if (false) {
                     //add support for ims video call;
-                //}
+                }
             default:
                 return false;
         }

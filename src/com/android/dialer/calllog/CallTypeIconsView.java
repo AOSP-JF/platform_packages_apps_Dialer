@@ -177,11 +177,6 @@ public class CallTypeIconsView extends View {
         public final Drawable videoCall;
 
         /**
-         * Drawable representing blacklisted call.
-         */
-        public final Drawable blacklist;
-
-        /**
          * The margin to use for icons.
          */
         public final int iconMargin;
@@ -208,9 +203,6 @@ public class CallTypeIconsView extends View {
             // above will be recolored here.
             missed = r.getDrawable(R.drawable.ic_call_arrow).mutate();
             missed.setColorFilter(r.getColor(R.color.missed_call), PorterDuff.Mode.MULTIPLY);
-
-            blacklist = r.getDrawable(R.drawable.ic_call_arrow).mutate();
-            blacklist.setColorFilter(r.getColor(R.color.blacklisted_call), PorterDuff.Mode.MULTIPLY);
 
             voicemail = r.getDrawable(R.drawable.ic_call_voicemail_holo_dark);
 
